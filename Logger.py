@@ -1,10 +1,14 @@
 class Logger:
     def __init__(self, fn, seed):
         self.fn = fn
-        open(self.fn, 'w').write("Seed {}".format(seed) + '\n')
+        f = open(self.fn, 'w')
+        f.write("Seed {}".format(seed) + '\n')
+        f.close()
         self.output( "Using seed {}".format(seed) )
     def log(self, st):
-        open(self.fn, 'a').write(str(st) + '\n')
+        f = open(self.fn, 'a')
+        f.write(str(st) + '\n')
+        f.close()
     def output(self, st):
         print st
         self.log(st)

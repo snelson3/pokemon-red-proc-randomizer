@@ -1,5 +1,5 @@
 from Randomizer import Randomizer
-import os
+import os, random, subprocess, shutil
 
 GAMEDIR = 'pokered'
 
@@ -9,21 +9,24 @@ class Pokered(Randomizer):
         self.gamedir = GAMEDIR
     def prepare(self):
         os.chdir(self.gamedir)
-        self.resetGit(files_to_remove='pokered.gbc')
+        self.resetGit(files_to_remove=['pokered.gbc'])
     def process(self):
-        self.resetSeed()
         if not self.args:
             raise Exception("No Arguments Set")
-        if "reorder-pokedex" in args:
-            randomize_pokemon_constants()
+        for arg in self.args:
+            self.resetSeed()
+            if arg == "reorder-pokedex":
+                self.randomize_pokemon_constants()
+            if arg == "rebuild":
+                pass
     def create(self, fn="pokered.gbc"):
         output = subprocess.check_output(['make', 'red'], stderr=subprocess.STDOUT)
         self.log.log(output)
         self.log.output("Pokemon Red Assembled")
-
         shutil.copyfile('pokered.gbc', '../{}'.format(fn))
         self.log.output("Pokemon Red Copied")
-    def randomize_pokemon_constants():
+    def randomize_pokemon_constants(self):
+        # This messes up the sprites real bad I think
         self.log.output("Randomizing Pokemon Constants")
         FN = "constants/pokemon_constants.asm"
         with open(FN, "r") as f:
@@ -36,7 +39,7 @@ class Pokered(Randomizer):
             reordered.append('\tconst {}   ; {}'.format(names[p], pokemon[p].split()[-1]))
         with open(FN, "w") as f:
             for line in reordered:
-                log(line)
+                self.log.log(line)
                 f.write(line + '\n')
         self.log.output("Pokemon Constants Randomized")
 

@@ -8,7 +8,7 @@ class Randomizer(ArgumentProcessor):
         self.logname = 'recent.log'
         self.gamedir = ''
         self.seed = seed if seed else int(time.time())
-        self.log = Logger("recent.log", self.seed)
+        self.log = Logger(os.path.abspath('./recent.log'), self.seed)
     def resetSeed(self):
         random.seed(self.seed)
     def resetGit(self, files_to_remove=[], branch='master'):
