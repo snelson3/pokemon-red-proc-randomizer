@@ -15,8 +15,10 @@ class Pokered(Randomizer):
             raise Exception("No Arguments Set")
         for arg in self.args:
             self.resetSeed()
-            if arg == "reorder-pokedex":
+            if arg == "reorder-pokemon":
                 self.randomize_pokemon_constants()
+            if arg == "reorder-pokedex":
+                self.randomize_pokedex_constants()
             if arg == "rebuild":
                 pass
     def create(self, fn="pokered.gbc"):
@@ -25,26 +27,36 @@ class Pokered(Randomizer):
         self.log.output("Pokemon Red Assembled")
         shutil.copyfile('pokered.gbc', '../{}'.format(fn))
         self.log.output("Pokemon Red Copied")
-    def randomize_pokemon_constants(self):
-        # This messes up the sprites real bad I think
-        self.log.output("Randomizing Pokemon Constants")
-        FN = "constants/pokemon_constants.asm"
-        with open(FN, "r") as f:
+    def randomize_constants_1(self, fn, end_lines = []):
+        with open(fn, "r") as f:
             inp = f.read().split('\n')
-        pokemon = inp[2:len(inp)-1]
-        names = map(lambda k: k.split()[1], pokemon)
+        constants = inp[2:len(inp)-1-len(end_lines)]
+        names = map(lambda k: k.split()[1], constants)
         random.shuffle(names)
         reordered = []
-        for p in range(len(pokemon)):
-            reordered.append('\tconst {}   ; {}'.format(names[p], pokemon[p].split()[-1]))
-        with open(FN, "w") as f:
+        for p in range(len(constants)):
+            reordered.append('\tconst {}   ; {}'.format(names[p], constants[p].split()[-1])) # Might need exact spacing
+        with open(fn, "w") as f:
+            f.write("const_value = 1\n\n")
             for line in reordered:
                 self.log.log(line)
                 f.write(line + '\n')
+            for line in end_lines:
+                f.write(line)
+    def randomize_pokemon_constants(self):
+        # This can mess up the sprites pretty badly
+        self.log.output("Randomizing Pokemon Constants")
+        FN = "constants/pokemon_constants.asm"
+        self.randomize_constants_1(FN)
         self.log.output("Pokemon Constants Randomized")
+    def randomize_pokedex_constants(self):
+        self.log.output("Randomizing Pokedex Constants")
+        FN = "constants/pokedex_constants.asm"
+        self.randomize_constants_1(FN, end_lines=["\n","NUM_POKEMON    EQU 151"])
+        self.log.output("Pokedex Constants Randomized")
 
 if __name__ == "__main__":
-    rand = Pokered()
+    rand = Pokered(seed=6)
     rand.setArguments()
     # Setting a seed in the arguments does nothing, should pass them in  when creating
     rand.prepare()

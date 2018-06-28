@@ -1,0 +1,37 @@
+tests for the argument processor
+  no arg
+  1 bool arg
+  2 bool args
+  seed
+  3 bool args
+  2 bool args seed 1 bool arg
+  string arg
+  string arg bool arg
+  seed bool arg string arg
+  2 string args
+  list arg
+  list arg string arg bool arg
+yaml support for argument processor (in a way that makes sense to convert to a ui)
+same tests for the yaml version
+
+
+function to randomize the starting pokemon, completely, same types, random types but rps, limit to 3 evos
+   doing this right requires changing gary's pokemon in his battles with you
+function to randomize the type of all pokemon
+    option to replace the moves as well
+function to swap base stats, either replace between other mons, or randomly increase/decrease within a threshold
+randomize where pokemon appear
+randomize trainer parties
+randomize warps
+text randomizer (or shrinker?)
+map randomization, using logic/procedural generation to make the game still make sense
+tileset randomization
+
+Sample "Menu"
+
+Randomize Starters (2 options)
+ No / Completely / Limit to 3 Evos
+ Same Types / Random Types but RPS
+Randomize Types (2 options)
+ No / Yes
+ Replace typed moves ?
