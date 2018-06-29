@@ -7,7 +7,7 @@ class TestArgumentProcessor(unittest.TestCase):
     def parseArgs(self, inp, expectedOut):
         proc = ArgumentProcessor()
         sys.argv = inp
-        self.assertEquals(proc.parseCmd(), expectedOut)
+        self.assertEqual(proc.parseCmd(), expectedOut)
 
     def testNoArgs(self):
         inp = ["fn.py"]

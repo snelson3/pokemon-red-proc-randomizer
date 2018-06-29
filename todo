@@ -1,7 +1,4 @@
-yaml support for argument processor (in a way that makes sense to convert to a ui)
-same tests for the yaml version
-
-
+convert to python 3, no real reason to be on python 2
 
 function to randomize the starting pokemon, completely, same types, random types but rps, limit to 3 evos
    doing this right requires changing gary's pokemon in his battles with you
@@ -25,4 +22,3 @@ Randomize Types (2 options)
  No / Yes
  Replace typed moves ?
 
-convert to python 3, no real reason to be on python 2

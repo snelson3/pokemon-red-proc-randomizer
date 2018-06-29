@@ -10,5 +10,5 @@ class Logger:
         f.write(str(st) + '\n')
         f.close()
     def output(self, st):
-        print st
+        print( st )
         self.log(st)

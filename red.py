@@ -31,7 +31,7 @@ class Pokered(Randomizer):
         with open(fn, "r") as f:
             inp = f.read().split('\n')
         constants = inp[2:len(inp)-1-len(end_lines)]
-        names = map(lambda k: k.split()[1], constants)
+        names = list(map(lambda k: k.split()[1], constants))
         random.shuffle(names)
         reordered = []
         for p in range(len(constants)):

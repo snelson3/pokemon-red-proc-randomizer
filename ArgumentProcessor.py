@@ -30,4 +30,4 @@ class ArgumentProcessor:
         return load(open(fn, "r"), Loader=Loader)
 
 if __name__ == '__main__':
-    print ArgumentProcessor().parseCmd()
+    print(ArgumentProcessor().parseCmd())
