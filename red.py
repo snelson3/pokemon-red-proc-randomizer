@@ -4,8 +4,8 @@ import os, random, subprocess, shutil
 GAMEDIR = 'pokered'
 
 class Pokered(Randomizer):
-    def __init__(self, seed=None):
-        Randomizer.__init__(self, seed)
+    def __init__(self):
+        Randomizer.__init__(self)
         self.gamedir = GAMEDIR
     def prepare(self):
         os.chdir(self.gamedir)
@@ -57,8 +57,6 @@ class Pokered(Randomizer):
 
 if __name__ == "__main__":
     rand = Pokered()
-    rand.setArguments()
-    # Setting a seed in the arguments does nothing, should pass them in  when creating
     rand.prepare()
     rand.process()
     rand.create()

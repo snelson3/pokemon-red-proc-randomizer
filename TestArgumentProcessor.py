@@ -20,13 +20,13 @@ class TestArgumentProcessor(unittest.TestCase):
         self.parseArgs(inp, {"test1": True, "test2": True})
     def testSeed(self):
         inp = ["fn.py", "-seed", "1010"]
-        self.parseArgs(inp, {})
+        self.parseArgs(inp, {"seed": "1010"})
     def testSeed3Bools(self):
         inp = ["fn.py", "-seed", "1010", "test1", "test2", "test3"]
-        self.parseArgs(inp, {"test1": True, "test2": True, "test3": True})
+        self.parseArgs(inp, {"test1": True, "test2": True, "test3": True, "seed": "1010"})
     def test2BoolSeedBool(self):
         inp = ["fn.py", "test1", "test2", "-seed", "1010", "test1", "test2", "test3"]
-        self.parseArgs(inp, {"test1": True, "test2": True, "test3": True})
+        self.parseArgs(inp, {"test1": True, "test2": True, "test3": True, "seed": "1010"})
     def testStringArg(self):
         inp = ["fn.py", "-test1", "one"]
         self.parseArgs(inp, {"test1": "one"})
@@ -47,7 +47,7 @@ class TestArgumentProcessor(unittest.TestCase):
         self.parseArgs(inp, {"test1": ["one","two"], "test2": ["three","four"]})
     def testListStringBoolSeed(self):
         inp = ["fn.py", "-test1", "[\"one\"]", "-test2", "two", "test3", "-seed", "1010"]
-        self.parseArgs(inp, {"test1": ["one"], "test2": "two", "test3": True})
+        self.parseArgs(inp, {"test1": ["one"], "test2": "two", "test3": True, "seed": "1010"})
 
 
 if __name__ == '__main__':

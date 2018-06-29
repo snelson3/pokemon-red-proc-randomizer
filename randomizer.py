@@ -3,11 +3,12 @@ from Logger import Logger
 from ArgumentProcessor import ArgumentProcessor
 
 class Randomizer(ArgumentProcessor):
-    def __init__(self, seed=None):
+    def __init__(self):
         ArgumentProcessor.__init__(self)
         self.logname = 'recent.log'
         self.gamedir = ''
-        self.seed = seed if seed else int(time.time())
+        self.seed = int(time.time())
+        self.setArguments()
         self.log = Logger(os.path.abspath('./recent.log'), self.seed)
     def resetSeed(self):
         random.seed(self.seed)
@@ -24,6 +25,10 @@ class Randomizer(ArgumentProcessor):
             pass
         else:
             self.args = self.parseCmd()
+        if 'seed' in self.args:
+            self.seed = self.args['seed']
+            del self.args["seed"]
+            self.resetSeed()
     def prepare(self):
         os.chdir(self.gamedir)
         pass # Filled in by inheriting child, function that gets the environment ready for editing

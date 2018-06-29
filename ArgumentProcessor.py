@@ -1,4 +1,4 @@
-import sys, json, random
+import sys, json
 
 class ArgumentProcessor:
     def __init__(self):
@@ -15,9 +15,7 @@ class ArgumentProcessor:
                 assert len(args) > 0, "no value for argument!"
                 val = args.pop(0)
                 curr_name = curr[1:]
-                if curr_name in ["s", "seed"]:
-                    random.seed(val)
-                elif val[0] in ['[', '{']:
+                if val[0] in ['[', '{']:
                     # We are assuming the string is valid json
                     randomizer_args[curr_name] = json.loads(val)
                 else:
