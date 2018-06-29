@@ -56,7 +56,7 @@ class Pokered(Randomizer):
         self.log.output("Pokedex Constants Randomized")
 
 if __name__ == "__main__":
-    rand = Pokered(seed=6)
+    rand = Pokered()
     rand.setArguments()
     # Setting a seed in the arguments does nothing, should pass them in  when creating
     rand.prepare()
