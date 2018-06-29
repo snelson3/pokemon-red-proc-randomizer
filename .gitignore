@@ -1,3 +1,4 @@
+*.yml
 *.pyc
 .idea
 mGBA*

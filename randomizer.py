@@ -20,13 +20,12 @@ class Randomizer(ArgumentProcessor):
             if os.path.exists(fn):
                 os.remove(fn)
         self.log.output("Git repository has been reset")
-    def setArguments(self, type="cmd"):
-        if type == "yaml":
-            pass
-        else:
-            self.args = self.parseCmd()
+    def setArguments(self):
+        self.args = self.parseCmd()
+        if 'f' in self.args:
+            self.args = self.parseYml(self.args['f'])
         if 'seed' in self.args:
-            self.seed = self.args['seed']
+            self.seed = str(self.args['seed'])
             del self.args["seed"]
             self.resetSeed()
     def prepare(self):

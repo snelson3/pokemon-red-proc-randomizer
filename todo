@@ -1,5 +1,3 @@
-setting a seed in the arguments should work
-
 yaml support for argument processor (in a way that makes sense to convert to a ui)
 same tests for the yaml version
 

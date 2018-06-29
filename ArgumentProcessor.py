@@ -1,4 +1,4 @@
-import sys, json
+import sys, json, os
 
 class ArgumentProcessor:
     def __init__(self):
@@ -23,6 +23,11 @@ class ArgumentProcessor:
             else:
                 randomizer_args[curr] = True
         return randomizer_args
+    def parseYml(self, fn):
+        assert os.path.isfile(fn), "File not found!"
+        from yaml import load
+        from yaml import CLoader as Loader
+        return load(open(fn, "r"), Loader=Loader)
 
 if __name__ == '__main__':
     print ArgumentProcessor().parseCmd()
