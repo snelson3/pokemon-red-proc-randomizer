@@ -77,7 +77,8 @@ class Pokered(Randomizer):
         self.gamedir = GAMEDIR
     def prepare(self):
         os.chdir(self.gamedir)
-        self.resetGit(files_to_remove=['pokered.gbc'])
+        if "build" not in self.args:
+            self.resetGit(files_to_remove=['pokered.gbc'])
     def process(self):
         if not self.args:
             raise Exception("No Arguments Set")
@@ -91,7 +92,7 @@ class Pokered(Randomizer):
                 self.randomize_starters(self.args['starters'])
             if arg == 'warps':
                 self.randomize_warps(self.args['warps'])
-            if arg == "rebuild":
+            if arg == "rebuild" or arg == "build":
                 pass
     def create(self, fn="pokered.gbc"):
         output = subprocess.check_output(['make', 'red'], stderr=subprocess.STDOUT)
@@ -153,6 +154,7 @@ class Pokered(Randomizer):
                         warp_constants.append(row["items"][-1])
         self.log.output("{} constants added".format(len(warp_constants)))
         self.log.log("RANDOMIZING")
+        self.log.output(sorted(list(set(warp_constants))))
         random.shuffle(warp_constants)
         for obj in objs:
             for b in range(len(obj.inp["blocks"])):

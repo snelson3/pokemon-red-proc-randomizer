@@ -1,3 +1,11 @@
+Unit tests for mapobject
+build command, doesn't reset git before building
+spoiler log
+don't allow broken warps
+Option for 1<->1 warps
+have red start in oaks lab being able to pick pokemon right away (FirstMapSpec)
+
+WISHLIST
 function to randomize the starting pokemon, completely, same types, random types but rps, limit to 3 evos
    doing this right requires changing gary's pokemon in his battles with you
 function to randomize the type of all pokemon

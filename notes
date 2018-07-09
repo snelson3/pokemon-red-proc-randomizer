@@ -1,0 +1,12 @@
+mapObjects
+
+warp db
+1st arg is y coordinate of warp
+2nd arg is x coordinate of warp
+3rd arg is ?
+4th arg is the warp pointer I think
+  -1 seems to say go to the overworld,
+      crashes when in overworld
+
+warp-to is related to coming back
+
