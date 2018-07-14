@@ -214,6 +214,15 @@ class Pokered(Randomizer):
         self.randomize_constants_1(FN, end_lines=["\n","NUM_POKEMON    EQU 151"])
         self.log.output("Pokedex Constants Randomized")
     def randomize_starters(self, options=None):
+        def _getChooseText(pokemon):
+            lines = []
+            if pokemon.stats["type1"] == pokemon.stats["type2"]:
+                lines.append('\tline "{} #MON,"'.format(pokemon.stats["type1"].lower()))
+            else:
+                lines.append('\tline "{} and"\n\tcont "{} #MON,"'.format(pokemon.stats["type1"].lower(),pokemon.stats["type2"].lower()))
+            lines.append('\tcont "{}?"'.format(pokemon.stats["name"]))
+            return lines
+        # This should happen last, I'm thinking I should make things happen in a defined order
         self.log.output("Randomizing Starters")
         # Default is to completely randomize starters
             # Read Pokedex Constants
@@ -225,6 +234,18 @@ class Pokered(Randomizer):
         ru.replaceLine("constants/starter_mons.asm", 1, "STARTER1 EQU {}".format(options[0]))
         ru.replaceLine("constants/starter_mons.asm", 2, "STARTER2 EQU {}".format(options[1]))
         ru.replaceLine("constants/starter_mons.asm", 3, "STARTER3 EQU {}".format(options[2]))
+        text1 = _getChooseText(self.pokemon[options[0]])
+        text2 = _getChooseText(self.pokemon[options[1]])
+        text3 = _getChooseText(self.pokemon[options[2]])
+        ru.replaceLine("text/maps/oaks_lab.asm", 43, text3[1])
+        ru.replaceLine("text/maps/oaks_lab.asm", 42, text3[0])
+
+        ru.replaceLine("text/maps/oaks_lab.asm", 37, text2[1])
+        ru.replaceLine("text/maps/oaks_lab.asm", 36, text2[0])
+
+        ru.replaceLine("text/maps/oaks_lab.asm", 31, text1[1])
+        ru.replaceLine("text/maps/oaks_lab.asm", 30, text1[0])
+
     def randomize_warps(self, options=None):
         self.log.output("Randomizing warps")
         maps_to_exclude = ['pallettown.asm', 'redshouse1f.asm','redshouse2f.asm', 'oakslab.asm']
