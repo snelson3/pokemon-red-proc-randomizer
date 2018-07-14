@@ -211,11 +211,17 @@ class Pokered(Randomizer):
         self.randomize_constants_1(FN, end_lines=["\n","NUM_POKEMON    EQU 151"])
         self.log.output("Pokedex Constants Randomized")
     def randomize_starters(self, options=None):
+        self.log.output("Randomizing Starters")
         # Default is to completely randomize starters
             # Read Pokedex Constants
             # Randomly pick 3
             # Replace the starters file
-        pass
+        self.readPokemon() # Create a self.pokemon attribute with a dict of all pokemon
+        options = list(self.pokemon.keys())
+        random.shuffle(options)
+        ru.replaceLine("constants/starter_mons.asm", 1, "STARTER1 EQU {}".format(options[0]))
+        ru.replaceLine("constants/starter_mons.asm", 2, "STARTER2 EQU {}".format(options[1]))
+        ru.replaceLine("constants/starter_mons.asm", 3, "STARTER3 EQU {}".format(options[2]))
     def randomize_warps(self, options=None):
         self.log.output("Randomizing warps")
         maps_to_exclude = ['pallettown.asm', 'redshouse1f.asm','redshouse2f.asm', 'oakslab.asm']
@@ -282,12 +288,20 @@ class Pokered(Randomizer):
         # Start with pokedex, so the parcel trip isn't necessary to get pokeballs
         # Oaks speech can be even shorter
         pass
+    def readPokemon(self):
+        self.pokemon = {}
+        dir = 'data/baseStats'
+        for f in list(os.walk(dir))[0][2]:
+            fn = os.path.join(dir,f)
+            p = Pokemon(fn)
+            self.pokemon[p.stats["name"]] = p
 
 if __name__ == "__main__":
     if False:
         p = Pokemon('pokered/data/baseStats/bulbasaur.asm')
         p.writeStats()
-    elif True:
+    elif False:
+        # Also should be a unit test someday
         dir = 'pokered/data/baseStats/'
         fns = list(os.walk(dir))[0][2]
         for f in fns:

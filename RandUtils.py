@@ -5,29 +5,20 @@ class RandUtils:
     def replaceFile(self, new, old):
         shutil.copy(new,old)
     def replaceLine(self, fn, ln, st):
-        content = open(fn, "r").read().split("\n")
-        assert ln <= len(content)
+        content = []
+        with open(fn) as f:
+            for line in f:
+                content.append(line)
+        content[ln-1] = st + "\n"
         with open(fn, "w") as f:
-            for l in range(ln-1):
-                f.write(content.pop(0))
-                if len(content) > 0:
-                    f.write("\n")
-            f.write(st+"\n")
-            content.pop(0)
-            while len(content) > 0:
-                f.write(content.pop(0))
-                if len(content) > 0:
-                    f.write("\n")
+            for line in content:
+                f.write(line)
     def addLine(self, fn, ln, st):
-        content = open(fn, "r").read().split("\n")
-        assert ln <= len(content)
+        content = []
+        with open(fn) as f:
+            for line in f:
+                content.append(line)
+        content = content[:ln-1] + [st+"\n"] + content[ln-1:]
         with open(fn, "w") as f:
-            for l in range(ln-1):
-                f.write(content.pop(0))
-                if len(content) > 0:
-                    f.write("\n")
-            f.write(st+"\n")
-            while len(content) > 0:
-                f.write(content.pop(0))
-                if len(content) > 0:
-                    f.write("\n")
+            for line in content:
+                f.write(line)
