@@ -155,6 +155,7 @@ class Pokered(Randomizer):
     def __init__(self):
         Randomizer.__init__(self)
         self.gamedir = GAMEDIR
+        self.pokemon = {}
     def prepare(self):
         os.chdir(self.gamedir)
         if "build" not in self.args:
@@ -175,6 +176,8 @@ class Pokered(Randomizer):
             if arg == 'skip-intro':
                 # Probably necessary when randomizing the map, but nice anyway
                 self.skip_intro()
+            if arg == 'wild':
+                self.randomize_wilds(self.args['wild'])
             if arg == "rebuild" or arg == "build":
                 pass
     def create(self, fn="pokered.gbc"):
@@ -255,6 +258,33 @@ class Pokered(Randomizer):
             with open(obj.fn,"w") as f:
                 f.write(obj.write())
         self.log.output("Warps Randomized")
+    def randomize_wilds(self, options=None):
+        # Will eventually be many options
+        # Loop through every file
+        # Every time theres a spot for a wild pokemon
+        # Pick a random one and replace that line
+        self.log.output("Randomizing Wild Pokemon Locations")
+        self.readPokemon()
+        dir = 'data/wildPokemon'
+        fns = list(os.walk(dir))[0][2]
+        for f in fns:
+            fn = os.path.join(dir,f)
+            content = list(open(fn))
+            for l in range(len(content)):
+                line = content[l]
+                if "db" in line and "," in line:
+                    if line[:2] == "\t\t":
+                        indents = "\t\t"
+                    else:
+                        indents = "\t"
+
+                    content[l] = "{}db {},{}".format(
+                        indents,
+                        line.split("db")[1].split(",")[0].strip(),
+                        random.choice(list(self.pokemon.keys()))
+                    )
+                    ru.replaceLine(fn,l+1,content[l])
+
     def skip_intro(self):
         self.log.output("Shortening the intro")
         # Makes oaks intro text less obnoxious
@@ -289,7 +319,8 @@ class Pokered(Randomizer):
         # Oaks speech can be even shorter
         pass
     def readPokemon(self):
-        self.pokemon = {}
+        if not self.pokemon == {}:
+            return # Don't run this multiple times
         dir = 'data/baseStats'
         for f in list(os.walk(dir))[0][2]:
             fn = os.path.join(dir,f)
