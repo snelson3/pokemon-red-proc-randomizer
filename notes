@@ -14,16 +14,6 @@ Can use mapheaders to see if it's an overworld map
     Changing the tileset used will break things
 
 
-Setting the special warp like this puts you in oaks lab
-;Format:
-;	db Map_id
-;	FLYWARP_DATA [Map Width][Y-pos][X-pos]
-;	db Tileset_id
-FirstMapSpec:
-	db OAKS_LAB
-	FLYWARP_DATA OAKS_LAB_WIDTH,5,5
-	db OAKS_LAB
-
 PalletTownScript0 is what triggers oak finding you
 
 OaksLabScript16 might be the conversation you have at the start of oaks lab
@@ -32,25 +22,19 @@ OaksLabScript5
 OaksLabScript11 is possibly the script that makes you fight your rival in oaks lab
     no its the script that starts the battle but retting it makes a softlock happen
 
-SetEvent EVENT_OAK_ASKED_TO_CHOOSE_MON
-
-EVENT_PALLET_AFTER_GETTING_POKEBALLS
-
-Finish start of game hack and code that
-method to randomize starting pokemon
-method to randomize wild pokemon placements
-warps randomizer should be a little better
-overworld randomizer
 
 default options should be better, or text speed instan hack
 
 utils class
-    add line/replace line methods
     would be nice to have add/replace LineOfFunc method
 
 you can make oaks speech even shorter (not show nidorino/etc)
   editing OakSpeech in oak_speech.asm
 
-
 level scaling will be an eventual option for map randomness
 
+method to randomize starting pokemon
+method to randomize wild pokemon placements
+randomize types cause it's easy now
+warps randomizer should be a little better
+overworld randomizer

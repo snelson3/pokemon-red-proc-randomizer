@@ -73,6 +73,84 @@ class MapObject():
             lines.append('')
         return '\n'.join(lines)
 
+class Pokemon():
+    def __init__(self, fn):
+        self.fn = fn
+        self.stats = self.readStats()
+    def readStats(self):
+        s = {}
+        with open(self.fn) as f:
+            content = f.read().split("\n")
+        if ":" in content[0]:
+            s["funcDef"] = content.pop(0)
+        gValue = lambda s: s.split()[1].strip()
+        s["name"] = gValue(content.pop(0))[4:]
+        s["hp"] = gValue(content.pop(0))
+        s["attack"] = gValue(content.pop(0))
+        s["defense"] = gValue(content.pop(0))
+        s["speed"] = gValue(content.pop(0))
+        s["special"] = gValue(content.pop(0))
+        s["type1"] = gValue(content.pop(0))
+        s["type2"] = gValue(content.pop(0))
+        s["catchRate"] = gValue(content.pop(0))
+        s["xpYield"] = gValue(content.pop(0))
+        spritedims = content.pop(0).split("INCBIN")[1].split(";")
+        s["SpriteDims"] = spritedims[0].strip().split(",")
+        s["SpriteDims_desc"] = spritedims[1].strip()
+        s["FrontPic"] = gValue(content.pop(0))
+        s["BackPic"] = gValue(content.pop(0))
+        content.pop(0) # Comment Line
+        s["Attack1"] = gValue(content.pop(0))
+        s["Attack2"] = gValue(content.pop(0))
+        s["Attack3"] = gValue(content.pop(0))
+        s["Attack4"] = gValue(content.pop(0))
+        s["growth"] = gValue(content.pop(0))
+        content.pop(0) # Comment Line
+        s["learnset"] = []
+        while len(content) > 0 and "tmlearn" in content[0]:
+            s["learnset"].append(gValue(content.pop(0)).split(','))
+        if len(content) > 0:
+            padding = content.pop(0).split("db")[1].split(";")
+            s["padding"] = padding[0].strip()
+            s["padding_desc"] = padding[1].strip()
+        if len(content) > 0:
+            s["postpend"] = content
+        return s
+    def writeStats(self):
+        s = self.stats
+        with open(self.fn, "w") as f:
+            if "funcDef" in s:
+                f.write(s["funcDef"]+"\n")
+            f.write("db DEX_{} ; {}\n".format(s["name"], "pokedex id"))
+            dbw = lambda l,d : f.write("db {} ; {}\n".format(l,d))
+            dbw(s["hp"], "base hp")
+            dbw(s["attack"], "base attack")
+            dbw(s["defense"], "base defense")
+            dbw(s["speed"], "base speed")
+            dbw(s["special"], "base special")
+            dbw(s["type1"], "species type 1")
+            dbw(s["type2"], "species type 2")
+            dbw(s["catchRate"], "catch rate")
+            dbw(s["xpYield"], "base exp yield")
+            f.write("INCBIN {} ; {}\n".format(",".join(s["SpriteDims"]), s["SpriteDims_desc"]))
+            f.write("dw {}\n".format(s["FrontPic"]))
+            f.write("dw {}\n".format(s["BackPic"]))
+            f.write("; attacks known at lvl 0\n")
+            f.write("db {}\n".format(s["Attack1"]))
+            f.write("db {}\n".format(s["Attack2"]))
+            f.write("db {}\n".format(s["Attack3"]))
+            f.write("db {}\n".format(s["Attack4"]))
+            dbw(s["growth"], "growth rate")
+            f.write("; learnset\n")
+            for tmset in s["learnset"]:
+                f.write("\ttmlearn {}\n".format(",".join(tmset)))
+            if 'padding' in s:
+                dbw(s["padding"], s["padding_desc"])
+            if "postpend" in s:
+                for l in s["postpend"]:
+                    if not l == '':
+                        f.write(l + '\n')
+
 class Pokered(Randomizer):
     def __init__(self):
         Randomizer.__init__(self)
@@ -207,6 +285,19 @@ class Pokered(Randomizer):
 
 if __name__ == "__main__":
     if False:
+        p = Pokemon('pokered/data/baseStats/bulbasaur.asm')
+        p.writeStats()
+    elif True:
+        dir = 'pokered/data/baseStats/'
+        fns = list(os.walk(dir))[0][2]
+        for f in fns:
+            fn = os.path.join(dir,f)
+            old = open(fn).read().strip()
+            poke = Pokemon(fn)
+            poke.writeStats()
+            assert old == open(fn).read().strip(), "files differ!"
+    elif False:
+        # Turn this into a unit test someday
         mp = []
         dir = 'pokered/data/mapObjects/'
         fns = list(os.walk(dir))[0][2]
