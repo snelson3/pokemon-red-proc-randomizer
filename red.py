@@ -1,4 +1,6 @@
 from Randomizer import Randomizer
+from RandUtils import RandUtils
+ru = RandUtils()
 import os, random, subprocess, shutil
 
 GAMEDIR = 'pokered'
@@ -92,6 +94,9 @@ class Pokered(Randomizer):
                 self.randomize_starters(self.args['starters'])
             if arg == 'warps':
                 self.randomize_warps(self.args['warps'])
+            if arg == 'skip-intro':
+                # Probably necessary when randomizing the map, but nice anyway
+                self.skip_intro()
             if arg == "rebuild" or arg == "build":
                 pass
     def create(self, fn="pokered.gbc"):
@@ -166,9 +171,39 @@ class Pokered(Randomizer):
             with open(obj.fn,"w") as f:
                 f.write(obj.write())
         self.log.output("Warps Randomized")
-
-
-
+    def skip_intro(self):
+        self.log.output("Shortening the intro")
+        # Makes oaks intro text less obnoxious
+        self.log.log("Make Oaks speech manageable")
+        ru.replaceFile(os.path.join("../custom_scripts","oakspeech.asm"), os.path.join("text", "oakspeech.asm"))
+        # Starts player in oaks lab (should really start right in front of pokeballs)
+        self.log.log("Starting player in oaks lab")
+        warpsc = os.path.join("data", "special_warps.asm")
+        ru.replaceLine(warpsc, 38, "\tdb OAKS_LAB")
+        ru.replaceLine(warpsc, 39, "\tFLYWARP_DATA OAKS_LAB_WIDTH,5,7")
+        ru.replaceLine(warpsc, 40, "\tdb OAKS_LAB")
+        # Skip trainer battle (still get text right now)
+        self.log.log("Skipping First Trainer Battle")
+        labscript = os.path.join("scripts", "oakslab.asm")
+        ru.addLine(labscript, 2, "\t SetEvent EVENT_OAK_ASKED_TO_CHOOSE_MON")
+        ru.addLine(labscript, 380, "\tld [wJoyIgnore], a")
+        ru.addLine(labscript, 381, "\tld a, PLAYER_DIR_UP")
+        ru.addLine(labscript, 382, "\tld [wPlayerMovingDirection], a")
+        ru.addLine(labscript, 383, "\tld a, $c")
+        ru.addLine(labscript, 384, "\tld [wOaksLabCurScript], a")
+        ru.addLine(labscript, 385, "\tret")
+        # Set oak to not appear in pallet town
+        self.log.log("Don't see oak in pallet town grass")
+        palletscript = os.path.join("scripts", "pallettown.asm")
+        ru.addLine(palletscript, 21, "\tret")
+        # NEED TO FIGURE OUT
+        # Don't let player leave lab without pokemon
+        # Don't trigger gary's text at all
+           # True Ideal would be making this battle optional
+        # Put oak in the lab to start, without triggering any scripts
+        # Start with pokedex, so the parcel trip isn't necessary to get pokeballs
+        # Oaks speech can be even shorter
+        pass
 
 if __name__ == "__main__":
     if False:
