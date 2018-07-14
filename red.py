@@ -163,23 +163,29 @@ class Pokered(Randomizer):
     def process(self):
         if not self.args:
             raise Exception("No Arguments Set")
-        for arg in self.args:
+        if "reorder-pokemon" in self.args: # This should not be a public option
             self.resetSeed()
-            if arg == "reorder-pokemon":
-                self.randomize_pokemon_constants()
-            if arg == "reorder-pokedex":
-                self.randomize_pokedex_constants()
-            if arg == 'starters':
-                self.randomize_starters(self.args['starters'])
-            if arg == 'warps':
-                self.randomize_warps(self.args['warps'])
-            if arg == 'skip-intro':
-                # Probably necessary when randomizing the map, but nice anyway
-                self.skip_intro()
-            if arg == 'wild':
-                self.randomize_wilds(self.args['wild'])
-            if arg == "rebuild" or arg == "build":
-                pass
+            self.randomize_pokemon_constants() # Tis should not be a public option
+        if "reorder-pokedex" in self.args:
+            self.resetSeed()
+            self.randomize_pokedex_constants()
+        if 'starters' in self.args:
+            self.resetSeed()
+            self.randomize_starters(self.args['starters'])
+        if 'types' in self.args:
+            self.resetSeed()
+            self.randomize_types(self.args['types'])
+        if 'warps' in self.args:
+            self.resetSeed()
+            self.randomize_warps(self.args['warps'])
+        if 'skip-intro' in self.args:
+            self.resetSeed()
+            self.skip_intro()
+        if 'wild' in self.args:
+            self.resetSeed()
+            self.randomize_wilds(self.args['wild'])
+        if "rebuild" in self.args or "build" in self.args:
+            pass
     def create(self, fn="pokered.gbc"):
         output = subprocess.check_output(['make', 'red'], stderr=subprocess.STDOUT)
         self.log.log(output)
@@ -245,7 +251,17 @@ class Pokered(Randomizer):
 
         ru.replaceLine("text/maps/oaks_lab.asm", 31, text1[1])
         ru.replaceLine("text/maps/oaks_lab.asm", 30, text1[0])
-
+    def randomize_types(self, options=None):
+        self.log.output("Randomizing Types")
+        self.readPokemon()
+        fn = os.path.join('constants','type_constants.asm')
+        types = list(map(lambda k: k.split()[0],list(open(fn))[1:]))
+        for pokemon in self.pokemon.values():
+            pokemon.stats["type1"] = random.choice(types)
+            pokemon.stats["type2"] = random.choice(types)
+            pokemon.writeStats() # This could be optimized
+        # Really this should call another function to update the types in the randomize_starters
+            # But that could lead things to be a bit messy, so I'm gonna leave it for now
     def randomize_warps(self, options=None):
         self.log.output("Randomizing warps")
         maps_to_exclude = ['pallettown.asm', 'redshouse1f.asm','redshouse2f.asm', 'oakslab.asm']
