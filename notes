@@ -13,18 +13,6 @@ warp-to is related to coming back
 Can use mapheaders to see if it's an overworld map
     Changing the tileset used will break things
 
-
-PalletTownScript0 is what triggers oak finding you
-
-OaksLabScript16 might be the conversation you have at the start of oaks lab
-OaksLabScript5
-
-OaksLabScript11 is possibly the script that makes you fight your rival in oaks lab
-    no its the script that starts the battle but retting it makes a softlock happen
-
-
-default options should be better, or text speed instan hack
-
 utils class
     would be nice to have add/replace LineOfFunc method
 
@@ -33,6 +21,22 @@ you can make oaks speech even shorter (not show nidorino/etc)
 
 level scaling will be an eventual option for map randomness
 
-randomize types cause it's easy now
 warps randomizer should be a little better
 overworld randomizer
+
+Need to experiment with different maps, see if the -1 crashes/etc
+
+
+
+
+It would be a good idea to make sure a spoiler log is actually being generated (option to have it be it's own seed)
+  This way if there's ever a bug with something crashing because the wrong data is in the wrong place
+   you will be able to see exactly what the data is, which should make it easier to reproduce
+
+Want to get the warps where it doesn't break often
+Then randomize connections, which I imagine will cause a lot of broken seeds
+Then get basic BLK reading working, so that I can add some logic to check that maps aren't shoved together in
+ a way that blocks things off
+then that can slowly get more advanced and be more logical
+
+eventual goal is to create a whole new map from scratch, that uses like a genetic algorithm to procedurally make the map

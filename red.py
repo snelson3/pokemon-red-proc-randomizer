@@ -264,7 +264,7 @@ class Pokered(Randomizer):
             # But that could lead things to be a bit messy, so I'm gonna leave it for now
     def randomize_warps(self, options=None):
         self.log.output("Randomizing warps")
-        maps_to_exclude = ['pallettown.asm', 'redshouse1f.asm','redshouse2f.asm', 'oakslab.asm']
+        maps_to_exclude = ['oakslab.asm']
         dir = 'data/mapObjects'
         assert os.path.isdir(dir)
         objs = []
@@ -283,7 +283,6 @@ class Pokered(Randomizer):
                         warp_constants.append(row["items"][-1])
         self.log.output("{} constants added".format(len(warp_constants)))
         self.log.log("RANDOMIZING")
-        self.log.output(sorted(list(set(warp_constants))))
         random.shuffle(warp_constants)
         for obj in objs:
             for b in range(len(obj.inp["blocks"])):

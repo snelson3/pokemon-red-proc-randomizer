@@ -11,7 +11,7 @@ _OakSpeechText2B::
 	done
 
 _IntroducePlayerText::
-	text "New phone, who dis?"
+	text "New phone who dis?"
 	done
 
 _IntroduceRivalText::
