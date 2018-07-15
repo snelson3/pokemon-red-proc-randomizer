@@ -8,7 +8,9 @@ GAMEDIR = 'pokered'
 class MapObject():
     def __init__(self, fn):
         self.fn = fn
+        # Change data to be a dict not a list
         self.data = self.read()
+        self.header = self.readHeader()
     def read(self):
         fn = self.fn
         obj = {}
@@ -72,6 +74,53 @@ class MapObject():
                 lines.append(s)
             lines.append('')
         return '\n'.join(lines)
+    def readHeader(self):
+        h = {}
+        self.hfn = "{}/data/mapHeaders/{}".format(GAMEDIR, os.path.basename(self.fn))
+        content = list(open(self.hfn))
+        h["name"] = content.pop(0).split(":")[0].strip()
+        h["tileset"] = content.pop(0).split("db")[1].split(";")[0].strip()
+        hw = content.pop(0).split("db")[1].split(";")[0].split(",")
+        h["height"] = hw[0].strip()
+        h["width"] = hw[1].strip()
+        l = content.pop(0).split("dw")[1].split(";")[0].strip().split(',')
+        h["blocks"] = l[0].strip()
+        h["textPointers"] = l[1].strip()
+        h["script"] = l[2].strip()
+        connections = content.pop(0).split("db")[1].split(";")[0].strip()
+        if '|' in connections or connections in ["NORTH", "SOUTH", "WEST", "EAST"]:
+            h["connections"] = {}
+            for i in range(len(connections.split('|'))):
+                d = content.pop(0)
+                h["connections"][d.split("_MAP")[0].strip()] = map(lambda k: k.strip(), d.split("MAP_CONNECTION")[1].split(","))
+        else:
+            h["connections"] = connections
+        h["object"] = content.pop(0).split("dw")[1].split(";")[0].strip()
+        if len(content) > 0:
+            h["postpend"] = content
+        return h
+    def writeHeader(self):
+        h = self.header
+        with open(self.hfn,"w") as f:
+            f.write("{}:\n".format(h["name"]))
+            f.write("\tdb {} ; tileset\n".format(h["tileset"]))
+            f.write("\tdb {}, {} ; dimensions (y, x)\n".format(h["height"], h["width"]))
+            f.write("\tdw {}, {}, {} ; blocks, texts, scripts\n".format(h["blocks"], h["textPointers"], h["script"]))
+            c = "\tdb "
+            if type(h["connections"]) == str:
+                c += "{} ; connections\n".format(h["connections"])
+                f.write(c)
+            else:
+                c += " | ".join(h["connections"].keys())
+                c += " ; connections\n"
+                f.write(c)
+                for conn in h["connections"]:
+                    f.write("\t{}_MAP_CONNECTION {}\n".format(conn, ", ".join(h["connections"][conn])))
+            f.write("\tdw {} ; objects\n".format(h["object"]))
+            if "postpend" in h:
+                f.write(''.join(h["postpend"]))
+
+
 
 class Pokemon():
     def __init__(self, fn):
@@ -264,7 +313,7 @@ class Pokered(Randomizer):
             # But that could lead things to be a bit messy, so I'm gonna leave it for now
     def randomize_warps(self, options=None):
         self.log.output("Randomizing warps")
-        maps_to_exclude = ['oakslab.asm']
+        maps_to_exclude = ['oakslab.asm', 'silphcoelevator.blk']
         dir = 'data/mapObjects'
         assert os.path.isdir(dir)
         objs = []
@@ -364,7 +413,18 @@ class Pokered(Randomizer):
             self.pokemon[p.stats["name"]] = p
 
 if __name__ == "__main__":
-    if False:
+    if True:
+        # Turn this into a unit test someday
+        dir = 'pokered/data/mapObjects/'
+        fns = list(os.walk(dir))[0][2]
+        for f in fns:
+            fn = os.path.join(dir, f)
+            obj = MapObject(fn)
+            s = open(fn).read()
+            obj.writeHeader()
+            s2 = open(fn).read()
+            # assert s == out, "files differ!"
+    elif False:
         p = Pokemon('pokered/data/baseStats/bulbasaur.asm')
         p.writeStats()
     elif False:

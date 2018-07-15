@@ -3,9 +3,9 @@ mapObjects
 warp db
 1st arg is y coordinate of warp
 2nd arg is x coordinate of warp
-3rd arg is ?
-4th arg is the warp pointer I think
-  -1 seems to say go to the overworld,
+3rd arg is what doorway of the destination map are we going to
+4th arg destination map
+  -1 seems to say go to the overworld (back where came from),
       crashes when in overworld
 
 warp-to is related to coming back
@@ -24,10 +24,25 @@ level scaling will be an eventual option for map randomness
 warps randomizer should be a little better
 overworld randomizer
 
-Need to experiment with different maps, see if the -1 crashes/etc
+Need to experiment with different map objects, see if the -1 crashes/etc
+Also need to figure out warp-to better
 
 
+so the -1 obviously crashes the game when you go there from the overworld,
+but if I make it so going to oaks lab goes to pewter poke center, then leaving center has a broken tileset
+    This is occuring because the wrong tileset is getting loaded
+        If I hardcode leaving pewter pokemon center to be pallet town, it breaks
+           If I hardcode it to the correct spot it works
 
+Note going somewhere from the overworld doesn't seem to have the tileset loading problem
+
+I think I just had a breakthrough
+the 3rd argument of the warp line specifies which warp_to to use, so if it specifies a warp_to that doesn't exist, things break
+
+
+There are constants for the overworld, so you can use those instead of the -1's.
+
+So somethings up
 
 It would be a good idea to make sure a spoiler log is actually being generated (option to have it be it's own seed)
   This way if there's ever a bug with something crashing because the wrong data is in the wrong place
@@ -35,8 +50,24 @@ It would be a good idea to make sure a spoiler log is actually being generated (
 
 Want to get the warps where it doesn't break often
 Then randomize connections, which I imagine will cause a lot of broken seeds
+also would be fun to have a sprite randomizer that randomized all the sprites
+   could limit it to just trainers, or just pokeballs, or do everything
 Then get basic BLK reading working, so that I can add some logic to check that maps aren't shoved together in
  a way that blocks things off
 then that can slowly get more advanced and be more logical
 
 eventual goal is to create a whole new map from scratch, that uses like a genetic algorithm to procedurally make the map
+   The starting point would be to just take each map, and create a new layout for it that still connects/works
+
+I should probably rearchitect this to have a better high level/low level separation (high level logic for the randomization doesn't know anything about the files)
+  will let me extend to other pokemon games a bit better
+  however This is fine for now, as I'm mostly exploring and seeing what I can do.
+  Just something for when it gets more mature/when I think about making it actually ready for the public
+
+
+Silph Co Elevator has a "237" destination pointer, which is a little weird
+  I think for now I can just have that be ignored in the randomization
+
+I need to figure out where the constant title is kept for each map
+
+As I try to generate a map data structure that links all the maps together

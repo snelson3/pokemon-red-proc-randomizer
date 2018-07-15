@@ -29,3 +29,7 @@ Randomize Types (2 options)
  Replace typed moves ?
 
 instant speed text hack would be nice
+
+A sign in oakslab should be modified to list the seed and all the arguments used
+
+pull request fixed comments for the mapHeaders as it makes unit tests easier
