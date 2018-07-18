@@ -151,6 +151,18 @@ class MapObject():
             "blocks": conn["details"][4],
             "extra_stuff": conn["details"][5:]# Some maps have an extra argument or two, idk why
         }
+    def updateConnections(self):
+        if type(self.header["connections"]) != dict:
+            return # Is a map without any connections, shouldn't be updated
+        def _generateConnList(conn):
+            # NORTH_MAP_CONNECTION PALLET_TOWN, ROUTE_1, 0, 0, Route1Blocks
+            base = [self.getName(), conn["destination"].getName(), conn["x"], conn["y"], conn["blocks"]]
+            if "extra_stuff" in conn:
+                base += conn["extra_stuff"]
+            return base
+        for dir in self.header['connections']:
+            self.header['connections'][dir] = _generateConnList(self.connections[dir])
+
     def getWarpsData(self):
         warps = list(filter(lambda k: k["descr"] == "warps", self.data["blocks"]))[0]["rows"]
         return list(map(
@@ -508,7 +520,15 @@ class Pokered(Randomizer):
             self.pokemon[p.stats["name"]] = p
 
 if __name__ == "__main__":
-    if False:
+    if True:
+        # Check that the connections all get sent through properly
+        os.chdir(GAMEDIR)
+        rand = Pokered()
+        rand.makeMap()
+        for map in rand.map:
+            rand.map[map].updateConnections()
+            rand.map[map].writeHeader()
+    elif False:
         # Turn this into a unit test someday
         dir = 'pokered/data/mapObjects/'
         fns = list(os.walk(dir))[0][2]

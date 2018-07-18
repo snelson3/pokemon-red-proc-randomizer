@@ -49,10 +49,6 @@ while loc != "exit":
             curr = rand.map[getName(options[loc]['destination'])]
             options = getOptions()
 
-# Problem because the .connections[] are all mapObjects and the .warps[] are a mix (when updating)
-# the connections aren't working
-# places like reds house 1f that have a -1 and a specific place are getting the specific places overwritten
-# Once it seems like the map can be traversed, make unit tests that update the values to be what they should be
 # connections should be exactly right
 # warps shouldn't, as the -1 will be filled in, go through github to quickly verify that nothing looks weird
 
