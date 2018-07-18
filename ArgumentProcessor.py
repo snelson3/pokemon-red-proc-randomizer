@@ -27,7 +27,7 @@ class ArgumentProcessor:
         assert os.path.isfile(fn), "File not found!"
         from yaml import load
         from yaml import CLoader as Loader
-        return load(open(fn, "r"), Loader=Loader)
+        return load(open(fn, "r"), Loader=Loader) # TODO This is not safe?, use loads
 
 if __name__ == '__main__':
     print(ArgumentProcessor().parseCmd())

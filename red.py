@@ -6,12 +6,23 @@ import os, random, subprocess, shutil
 GAMEDIR = 'pokered'
 
 class MapObject():
-    def __init__(self, fn):
+    def __init__(self, fn, logger=None):
         self.fn = fn
+        self.log = logger
         # Change data to be a dict not a list
         self.data = self.read()
         self.header = self.readHeader()
+        # I should take all the relevant data out of the data/header and move it into outside objects
+        self.isOverworld = self.header["tileset"] == "OVERWORLD"
+        self.connections = {
+            "NORTH": None,
+            "SOUTH": None,
+            "EAST": None,
+            "WEST": None
+        }
+        self.warps = {}
     def read(self):
+        # I need to rewrite this I was very timid
         fn = self.fn
         obj = {}
         assert os.path.exists(fn), "Invalid Filename! {}".format(fn)
@@ -76,7 +87,7 @@ class MapObject():
         return '\n'.join(lines)
     def readHeader(self):
         h = {}
-        self.hfn = "{}/data/mapHeaders/{}".format(GAMEDIR, os.path.basename(self.fn))
+        self.hfn = "data/mapHeaders/{}".format(os.path.basename(self.fn))
         content = list(open(self.hfn))
         h["name"] = content.pop(0).split(":")[0].strip()
         h["tileset"] = content.pop(0).split("db")[1].split(";")[0].strip()
@@ -92,7 +103,7 @@ class MapObject():
             h["connections"] = {}
             for i in range(len(connections.split('|'))):
                 d = content.pop(0)
-                h["connections"][d.split("_MAP")[0].strip()] = map(lambda k: k.strip(), d.split("MAP_CONNECTION")[1].split(","))
+                h["connections"][d.split("_MAP")[0].strip()] = list(map(lambda k: k.strip(), d.split("MAP_CONNECTION")[1].split(",")))
         else:
             h["connections"] = connections
         h["object"] = content.pop(0).split("dw")[1].split(";")[0].strip()
@@ -119,8 +130,56 @@ class MapObject():
             f.write("\tdw {} ; objects\n".format(h["object"]))
             if "postpend" in h:
                 f.write(''.join(h["postpend"]))
-
-
+    def getName(self):
+        return self.header['height'].split("_HEIGHT")[0]
+    def getConnectionsData(self):
+        if type(self.header["connections"]) != dict:
+            return []
+        return list(map(
+            lambda x: {"name": x[1][1] if x[1][0] == self.getName() else x[1][0], "direction": x[0], "details": x[1]},
+            self.header["connections"].items()
+        ))
+    def linkConnection(self, conn, obj):
+        if self.log and "PALLET_TOWN" in [obj.getName(), self.getName()]:
+            self.log.debug("Connecting {} - {}".format(self.getName(), obj.getName()))
+        if (self.connections[conn["direction"]]):
+            return # Doesn't need to be setup twice
+        self.connections[conn["direction"]] = {
+            "destination": obj,
+            "x": conn["details"][2],
+            "y": conn["details"][3],
+            "blocks": conn["details"][4],
+            "extra_stuff": conn["details"][5:]# Some maps have an extra argument or two, idk why
+        }
+    def getWarpsData(self):
+        warps = list(filter(lambda k: k["descr"] == "warps", self.data["blocks"]))[0]["rows"]
+        return list(map(
+            lambda k: {"name": k["items"][-1], "details": k["items"][1:]},
+            warps
+        ))
+    def linkWarp(self, warp, num, dest):
+        if dest == '-1':
+            dest_name = '-1'
+        elif dest == '237': # Not sure what to do about the elevator
+            dest_name = '237'
+        else:
+            dest_name = dest.getName()
+        if self.log and False: # Temp disabling
+            self.log.debug("Linking {} - {}".format(self.getName(), dest_name))
+        if num in self.warps:
+            return # Already linked the warp don't do it again
+        self.warps[num] = {
+            "destination": dest if type(dest) == MapObject else dest_name,
+            "x": warp["details"][0],
+            "y": warp["details"][1],
+            "dest_num": warp["details"][2],
+        }
+    def fillMissingWarps(self, dest):
+        if dest.getName() not in list(map(lambda w: self.warps[w]["destination"] if type(self.warps[w]["destination"]) == str else self.warps[w]["destination"].getName(), self.warps.keys())):
+            for w in self.warps.keys():
+                warp = self.warps[w]
+                if warp["destination"] == '-1':
+                    warp["destination"] = dest.getName()
 
 class Pokemon():
     def __init__(self, fn):
@@ -205,13 +264,20 @@ class Pokered(Randomizer):
         Randomizer.__init__(self)
         self.gamedir = GAMEDIR
         self.pokemon = {}
-    def prepare(self):
+    def makeMapObject(self, fn):
+        return MapObject(fn, self.log)
+    def setDir(self):
         os.chdir(self.gamedir)
+    def prepare(self):
+        self.setDir()
         if "build" not in self.args:
             self.resetGit(files_to_remove=['pokered.gbc'])
     def process(self):
         if not self.args:
             raise Exception("No Arguments Set")
+        if "map" in self.args:
+            self.resetSeed()
+            self.makeMap()
         if "reorder-pokemon" in self.args: # This should not be a public option
             self.resetSeed()
             self.randomize_pokemon_constants() # Tis should not be a public option
@@ -241,6 +307,36 @@ class Pokered(Randomizer):
         self.log.output("Pokemon Red Assembled")
         shutil.copyfile('pokered.gbc', '../{}'.format(fn))
         self.log.output("Pokemon Red Copied")
+    def makeMap(self):
+        self.map = {}
+        directory = 'data/mapObjects/'
+        fns = list(os.walk(directory))[0][2]
+        # Create all the map objects and add them to the map
+        for f in fns:
+            fn = os.path.join(directory,f)
+            obj = self.makeMapObject(fn)
+            self.map[obj.getName()] = obj
+        for key, obj in self.map.items():
+            # Link the connections
+            for conn in obj.getConnectionsData():
+                dest = self.map[conn["name"]]
+                obj.linkConnection(conn, dest)
+            # Link the warps (outside of the -1 ones)
+            warpData = obj.getWarpsData()
+            for w in range(len(warpData)):
+                warp = warpData[w]
+                dest = warp["name"]
+                if dest != '-1' and dest != '237':
+                    dest = self.map[dest]
+                obj.linkWarp(warp, w+1, dest)
+        for key, obj in self.map.items():
+            warpData = obj.getWarpsData()
+            for w in range(len(warpData)):
+                warp = warpData[w]
+                dest = warp["name"]
+                if dest != '-1' and dest != '237':
+                    dest = self.map[dest]
+                    dest.fillMissingWarps(obj)
     def randomize_constants_1(self, fn, end_lines = []):
         with open(fn, "r") as f:
             inp = f.read().split('\n')
@@ -323,7 +419,7 @@ class Pokered(Randomizer):
                 self.log.output("Excluding {}".format(f))
                 continue
             fn = os.path.join(dir,f)
-            obj = MapObject(fn)
+            obj = self.makeMapObject(fn)
             obj.read()
             objs.append(obj)
             for block in obj.inp["blocks"]:
@@ -369,7 +465,6 @@ class Pokered(Randomizer):
                         random.choice(list(self.pokemon.keys()))
                     )
                     ru.replaceLine(fn,l+1,content[l])
-
     def skip_intro(self):
         self.log.output("Shortening the intro")
         # Makes oaks intro text less obnoxious
@@ -413,7 +508,7 @@ class Pokered(Randomizer):
             self.pokemon[p.stats["name"]] = p
 
 if __name__ == "__main__":
-    if True:
+    if False:
         # Turn this into a unit test someday
         dir = 'pokered/data/mapObjects/'
         fns = list(os.walk(dir))[0][2]
@@ -423,7 +518,7 @@ if __name__ == "__main__":
             s = open(fn).read()
             obj.writeHeader()
             s2 = open(fn).read()
-            # assert s == out, "files differ!"
+            assert s == s2, "files differ!"
     elif False:
         p = Pokemon('pokered/data/baseStats/bulbasaur.asm')
         p.writeStats()

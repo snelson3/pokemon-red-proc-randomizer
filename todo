@@ -33,3 +33,7 @@ instant speed text hack would be nice
 A sign in oakslab should be modified to list the seed and all the arguments used
 
 pull request fixed comments for the mapHeaders as it makes unit tests easier
+
+When I'm solving all the technical debt I will want to make less i/o happen
+  Only read files once, and only write them once (only write them if they changed)
+  This also means all the randomization happens at a higher level than the file IO

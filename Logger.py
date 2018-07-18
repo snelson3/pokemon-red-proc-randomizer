@@ -1,3 +1,5 @@
+DEBUG=True
+
 class Logger:
     def __init__(self, fn, seed):
         self.fn = fn
@@ -11,4 +13,8 @@ class Logger:
         f.close()
     def output(self, st):
         print( st )
+        self.log(st)
+    def debug(self, st):
+        if DEBUG:
+            print( st )
         self.log(st)
