@@ -445,24 +445,27 @@ class Pokered(Randomizer):
         self.log.output("Randomizing warps")
         maps_to_exclude = ['OAKS_LAB', 'SILPH_CO_ELEVATOR']
         self.makeMap()
-        warps = []
-        for m in self.map:
-            if self.map[m].getName() in maps_to_exclude:
-                continue
-            warps += map(lambda w: (w["dest_num"], w["destination"]), self.map[m].warps.values())
-        random.shuffle(warps)
-        for m in self.map:
-            if self.map[m].getName() in maps_to_exclude:
-                continue
-            for w in self.map[m].warps:
-                new = warps.pop()
-                self.map[m].warps[w]["dest_num"] = new[0]
-                self.map[m].warps[w]["destination"] = new[1]
-            self.map[m].updateWarps()
-            # When I refactor I'm going to want to change this, keep track of all the objects changed
-            # so that then you only do file IO once for each necessary file at the end
-            with open(self.map[m].fn,"w") as f:
-                f.write(self.map[m].write())
+        mapNames = list(filter(lambda k: k not in maps_to_exclude, self.map))
+        def _shuffleEntrances(mapNames):
+            warps = []
+            for m in mapNames:
+                warps += map(lambda w: (w["dest_num"], w["destination"]), self.map[m].warps.values())
+            random.shuffle(warps)
+            for m in mapNames:
+                for w in self.map[m].warps:
+                    new = warps.pop()
+                    self.map[m].warps[w]["dest_num"] = new[0]
+                    self.map[m].warps[w]["destination"] = new[1]
+                self.map[m].updateWarps()
+
+                # When I refactor I'm going to want to change this, keep track of all the objects changed
+                # so that then you only do file IO once for each necessary file at the end
+                with open(self.map[m].fn,"w") as f:
+                    f.write(self.map[m].write())
+        self.log.output("Randomizing Overworld Warps")
+        _shuffleEntrances(list(filter(lambda k: self.map[k].isOverworld, mapNames)))
+        self.log.output("Randomizing Other Warps")
+        _shuffleEntrances(list(filter(lambda k: not self.map[k].isOverworld, mapNames)))
         self.log.output("Warps Randomized")
     def randomize_connections(self, options=None):
         self.log.output("Randomizing connections")
