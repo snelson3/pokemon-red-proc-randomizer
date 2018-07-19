@@ -1,4 +1,4 @@
-DEBUG=True
+DEBUG=False
 
 class Logger:
     def __init__(self, fn, seed):

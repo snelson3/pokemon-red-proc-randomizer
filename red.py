@@ -292,6 +292,7 @@ class Pokered(Randomizer):
         Randomizer.__init__(self)
         self.gamedir = GAMEDIR
         self.pokemon = {}
+        self.map = {}
     def makeMapObject(self, fn):
         return MapObject(fn, self.log)
     def setDir(self):
@@ -321,6 +322,9 @@ class Pokered(Randomizer):
         if 'warps' in self.args:
             self.resetSeed()
             self.randomize_warps(self.args['warps'])
+        if 'connections' in self.args:
+            self.resetSeed()
+            self.randomize_connections(self.args['connections'])
         if 'skip-intro' in self.args:
             self.resetSeed()
             self.skip_intro()
@@ -336,7 +340,8 @@ class Pokered(Randomizer):
         shutil.copyfile('pokered.gbc', '../{}'.format(fn))
         self.log.output("Pokemon Red Copied")
     def makeMap(self):
-        self.map = {}
+        if not self.map == {}: # only do this once
+            return
         directory = 'data/mapObjects/'
         fns = list(os.walk(directory))[0][2]
         # Create all the map objects and add them to the map
@@ -436,37 +441,52 @@ class Pokered(Randomizer):
         # Really this should call another function to update the types in the randomize_starters
             # But that could lead things to be a bit messy, so I'm gonna leave it for now
     def randomize_warps(self, options=None):
+        #TODO make it so the overworld maps are in their own randomization pool
         self.log.output("Randomizing warps")
-        maps_to_exclude = ['oakslab.asm', 'silphcoelevator.blk']
-        dir = 'data/mapObjects'
-        assert os.path.isdir(dir)
-        objs = []
-        warp_constants = []
-        for f in list(os.walk(dir))[0][2]:
-            if f in maps_to_exclude:
-                self.log.output("Excluding {}".format(f))
+        maps_to_exclude = ['OAKS_LAB', 'SILPH_CO_ELEVATOR']
+        self.makeMap()
+        warps = []
+        for m in self.map:
+            if self.map[m].getName() in maps_to_exclude:
                 continue
-            fn = os.path.join(dir,f)
-            obj = self.makeMapObject(fn)
-            obj.read()
-            objs.append(obj)
-            for block in obj.inp["blocks"]:
-                if block["descr"] == "warps":
-                    for row in block["rows"]:
-                        warp_constants.append(row["items"][-1])
-        self.log.output("{} constants added".format(len(warp_constants)))
-        self.log.log("RANDOMIZING")
-        random.shuffle(warp_constants)
-        for obj in objs:
-            for b in range(len(obj.inp["blocks"])):
-                block = obj.inp["blocks"][b]
-                if block["descr"] == "warps":
-                    for r in range(len(block["rows"])):
-                        obj.inp["blocks"][b]["rows"][r]["items"][-1] = warp_constants.pop()
-            out = obj.write()
-            with open(obj.fn,"w") as f:
-                f.write(obj.write())
+            warps += map(lambda w: (w["dest_num"], w["destination"]), self.map[m].warps.values())
+        random.shuffle(warps)
+        for m in self.map:
+            if self.map[m].getName() in maps_to_exclude:
+                continue
+            for w in self.map[m].warps:
+                new = warps.pop()
+                self.map[m].warps[w]["dest_num"] = new[0]
+                self.map[m].warps[w]["destination"] = new[1]
+            self.map[m].updateWarps()
+            # When I refactor I'm going to want to change this, keep track of all the objects changed
+            # so that then you only do file IO once for each necessary file at the end
+            with open(self.map[m].fn,"w") as f:
+                f.write(self.map[m].write())
         self.log.output("Warps Randomized")
+    def randomize_connections(self, options=None):
+        self.log.output("Randomizing connections")
+        self.makeMap()
+        mapKeys = list(filter(lambda m: self.map[m].connections["NORTH"] or self.map[m].connections["SOUTH"] or self.map[m].connections["EAST"] or self.map[m].connections["WEST"], self.map))
+        connections = []
+        for m in mapKeys:
+            for direction in self.map[m].connections:
+                val = self.map[m].connections[direction]
+                if not val:
+                    continue
+                    0/0
+                connections.append((val["destination"], val["blocks"]))
+        random.shuffle(connections)
+        for m in mapKeys:
+            for direction in self.map[m].connections:
+                val = self.map[m].connections[direction]
+                if not val:
+                    continue
+                new = connections.pop()
+                self.map[m].connections[direction]["destination"] = new[0]
+                self.map[m].connections[direction]["blocks"] = new[1]
+            self.map[m].updateConnections()
+            self.map[m].writeHeader()
     def randomize_wilds(self, options=None):
         # Will eventually be many options
         # Loop through every file
@@ -536,7 +556,7 @@ class Pokered(Randomizer):
             self.pokemon[p.stats["name"]] = p
 
 if __name__ == "__main__":
-    if True:
+    if False:
         # Hard to make a real test, but check that all the warps get sent through properly
         os.chdir(GAMEDIR)
         rand = Pokered()

@@ -71,3 +71,10 @@ Silph Co Elevator has a "237" destination pointer, which is a little weird
 I need to figure out where the constant title is kept for each map
 
 As I try to generate a map data structure that links all the maps together
+
+Warps seed 1531980321 can mess things up
+
+My electron based map should have an option to create a random seed with each option randomly turned on/off
+
+Need to figure out why warping from one overworld map to another overworld map doesn't load things properly  (it's kind of random)
+My guess would be it tries to load as an inside map
