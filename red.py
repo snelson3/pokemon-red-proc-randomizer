@@ -162,11 +162,10 @@ class MapObject():
             return base
         for dir in self.header['connections']:
             self.header['connections'][dir] = _generateConnList(self.connections[dir])
-
     def getWarpsData(self):
         warps = list(filter(lambda k: k["descr"] == "warps", self.data["blocks"]))[0]["rows"]
         return list(map(
-            lambda k: {"name": k["items"][-1], "details": k["items"][1:]},
+            lambda k: {"name": k["items"][-1], "details": [k["items"][0].split("warp ")[1]] + k["items"][1:]},
             warps
         ))
     def linkWarp(self, warp, num, dest):
@@ -180,6 +179,7 @@ class MapObject():
             self.log.debug("Linking {} - {}".format(self.getName(), dest_name))
         if num in self.warps:
             return # Already linked the warp don't do it again
+        # Really the destination and dest_num should be a tuple, so you can't change one without the other
         self.warps[num] = {
             "destination": dest if type(dest) == MapObject else dest_name,
             "x": warp["details"][0],
@@ -191,7 +191,23 @@ class MapObject():
             for w in self.warps.keys():
                 warp = self.warps[w]
                 if warp["destination"] == '-1':
-                    warp["destination"] = dest.getName()
+                    warp["destination"] = dest
+    def updateWarps(self):
+        for j in range(len(self.data["blocks"])):
+            x = self.data["blocks"][j]
+            if x["descr"] == "warps":
+                for i in range(len(x["rows"])):
+                    last = self.warps[i+1]["destination"]
+                    if type(self.warps[i+1]["destination"]) == MapObject:
+                        last = last.getName()
+                    x["rows"][i]["items"] = ["warp {}".format(self.warps[i+1]["x"]),
+                                             self.warps[i+1]["y"],
+                                             self.warps[i+1]["dest_num"],
+                                             last]
+
+        #	warp 7, 1, 0, REDS_HOUSE_2F ; staircase
+
+# The destnums are fucked up
 
 class Pokemon():
     def __init__(self, fn):
@@ -521,6 +537,16 @@ class Pokered(Randomizer):
 
 if __name__ == "__main__":
     if True:
+        # Hard to make a real test, but check that all the warps get sent through properly
+        os.chdir(GAMEDIR)
+        rand = Pokered()
+        rand.makeMap()
+        for map in rand.map:
+            rand.map[map].updateWarps()
+            out = rand.map[map].write()
+            with open(rand.map[map].fn, "w") as f:
+                f.write(out)
+    elif False:
         # Check that the connections all get sent through properly
         os.chdir(GAMEDIR)
         rand = Pokered()
