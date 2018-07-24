@@ -5,6 +5,17 @@ import os, random, subprocess, shutil
 
 GAMEDIR = 'pokered'
 
+def getOppositeDirection(dir):
+    d = dir.lower()
+    if d == 'north':
+        return 'south'
+    if d == 'south':
+        return 'north'
+    if d == 'east':
+        return 'west'
+    return 'east'
+
+
 class MapObject():
     def __init__(self, fn, logger=None):
         self.fn = fn
@@ -130,6 +141,8 @@ class MapObject():
             f.write("\tdw {} ; objects\n".format(h["object"]))
             if "postpend" in h:
                 f.write(''.join(h["postpend"]))
+    def hasConnections(self):
+        return self.connections["NORTH"] or self.connections["SOUTH"] or self.connections["EAST"] or self.connections["WEST"]
     def getName(self):
         return self.header['height'].split("_HEIGHT")[0]
     def getConnectionsData(self):
@@ -468,26 +481,38 @@ class Pokered(Randomizer):
         _shuffleEntrances(list(filter(lambda k: not self.map[k].isOverworld, mapNames)))
         self.log.output("Warps Randomized")
     def randomize_connections(self, options=None):
+        ONETOONE=True # Connections not being one-to-one is likely to cause map transition bugs
         self.log.output("Randomizing connections")
         self.makeMap()
-        mapKeys = list(filter(lambda m: self.map[m].connections["NORTH"] or self.map[m].connections["SOUTH"] or self.map[m].connections["EAST"] or self.map[m].connections["WEST"], self.map))
-        connections = []
+        mapKeys = list(filter(lambda m: self.map[m].hasConnections(), self.map))
+        connections = {"NORTH": [], "SOUTH": [], "EAST": [], "WEST": []}
+        connections_set = {"NORTH": [], "SOUTH": [], "EAST": [], "WEST": []}
         for m in mapKeys:
             for direction in self.map[m].connections:
                 val = self.map[m].connections[direction]
                 if not val:
                     continue
-                    0/0
-                connections.append((val["destination"], val["blocks"]))
-        random.shuffle(connections)
+                connections[direction].append((val["destination"], val["blocks"]))
+        for dir in connections:
+            random.shuffle(connections[dir])
         for m in mapKeys:
             for direction in self.map[m].connections:
+                if m in connections_set[direction]:
+                    continue
                 val = self.map[m].connections[direction]
                 if not val:
                     continue
-                new = connections.pop()
+                new = connections[direction].pop()
                 self.map[m].connections[direction]["destination"] = new[0]
                 self.map[m].connections[direction]["blocks"] = new[1]
+                connections_set[direction].append(m)
+                if ONETOONE:
+                    new_dir = getOppositeDirection(direction).upper()
+                    other_connection = list(filter(lambda k: k[0].getName() == m, connections[new_dir]))[0]
+                    connections[new_dir].remove(other_connection)
+                    new[0].connections[new_dir]["destination"] = other_connection[0]
+                    new[0].connections[new_dir]["blocks"] = other_connection[1]
+                    connections_set[new_dir].append(new[0].getName())
             self.map[m].updateConnections()
             self.map[m].writeHeader()
     def randomize_wilds(self, options=None):
