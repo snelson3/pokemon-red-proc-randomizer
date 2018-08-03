@@ -74,7 +74,26 @@ As I try to generate a map data structure that links all the maps together
 
 Warps seed 1531980321 can mess things up
 
-My electron based map should have an option to create a random seed with each option randomly turned on/off
+My electron based selector should have an option to create a random seed with each option randomly turned on/off
 
 Need to figure out why warping from one overworld map to another overworld map doesn't load things properly  (it's kind of random)
 My guess would be it tries to load as an inside map
+
+Looks like BLK files correspond to blocks, it's a 2D map with the block pointers laid out.
+https://github.com/pret/pokered/tree/master/gfx/blocksets
+  that's in hex too, gotta figure out how that corresponds
+    Think that probably corresponds to the tiles, each block is 4x4 so I imagine that's how it works
+red stands on a 2x2 set of tiles
+each byte in the .blk's corresponding .bst file corresponds to a tile in the corresponding tilemap (0 is the top left)
+
+
+overworld tileset .png is 16 x 6 tiles (96)
+.tilecoll might be bit's corresponding to tiles?
+   More complicated, 0ing or Fing out the file made me unable to walk really in the overworld
+       maybe it's 2 bits long or something, since water is something, also wild pokemon maybe
+
+overworld.tilecoll is 40 bytes long
+so
+
+BUGS
+loading 0, ROUTE_11 breaks, might be because it looks like digletts cave has a special load function (ctrl F stuff)
