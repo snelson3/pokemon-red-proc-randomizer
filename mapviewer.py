@@ -124,18 +124,18 @@ class MapViewer():
             for y in range(4):
                 row = []
                 # A big block has 4 rows
-                start_index = (i*big_blocks_per_row)*(y*(big_blocks_per_row))
+                start_index = (i*big_blocks_per_row)#+(y*(big_blocks_per_row))
                 for block in m.map[start_index:start_index+big_blocks_per_row]:
                     for x in range(4):
                         # a big block has 4 columns
                         row.append(block.getTile(y,x))
+                if len(row) < 1:
+                    raise Exception("Empty Row! I don't think this should happen")
                 translated_map.append(row)
         return translated_map
     def viewMap(self, m):
         tmap = self.breakDownTiles(m)
         for row in range(len(tmap)):
-            if row != 0:
-                continue
             for t in range(len(tmap[row])):
                 tile = tmap[row][t]
                 print(tile.index)
@@ -153,16 +153,16 @@ class MapViewer():
 if __name__ == '__main__':
     viewer = MapViewer()
 
-    # my_map = Map('pallettown', 20, 'overworld')
-    # viewer.viewMap(my_map)
+    my_map = Map('viridiancity', 20, 'overworld')
+    viewer.viewMap(my_map)
 
-    tileset = load_tileset(os.path.join(GAMEDIR, "gfx", "tilesets", 'reds_house'+'.png'))
-    NUM_COLS = 16
-    for x in range(len(tileset) // NUM_COLS):
-        for y, tile in enumerate(tileset[x*NUM_COLS:x*NUM_COLS+NUM_COLS]):
-            viewer.screen.blit(pygame.transform.scale(tile, (8*SCALE_AMT, 8*SCALE_AMT)), (y*24, x*32))
-    pygame.display.flip()
-    while pygame.event.wait().type != pygame.locals.QUIT:
-        pass
+    # tileset = load_tileset(os.path.join(GAMEDIR, "gfx", "tilesets", 'reds_house'+'.png'))
+    # NUM_COLS = 16
+    # for x in range(len(tileset) // NUM_COLS):
+    #     for y, tile in enumerate(tileset[x*NUM_COLS:x*NUM_COLS+NUM_COLS]):
+    #         viewer.screen.blit(pygame.transform.scale(tile, (8*SCALE_AMT, 8*SCALE_AMT)), (y*24, x*32))
+    # pygame.display.flip()
+    # while pygame.event.wait().type != pygame.locals.QUIT:
+    #     pass
 
 # http://qq.readthedocs.io/en/latest/tiles.html
