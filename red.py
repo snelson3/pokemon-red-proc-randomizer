@@ -456,7 +456,7 @@ class Pokered(Randomizer):
     def randomize_warps(self, options=None):
         #TODO make it so the overworld maps are in their own randomization pool
         self.log.output("Randomizing warps")
-        maps_to_exclude = ['OAKS_LAB', 'SILPH_CO_ELEVATOR']
+        maps_to_exclude = ['OAKS_LAB', 'SILPH_CO_ELEVATOR', 'CHAMPIONS_ROOM', 'HALL_OF_FAME', 'SAFFRON_GYM']
         self.makeMap()
         mapNames = list(filter(lambda k: k not in maps_to_exclude, self.map))
         def _shuffleEntrances(mapNames):

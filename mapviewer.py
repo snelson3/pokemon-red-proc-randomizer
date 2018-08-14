@@ -5,6 +5,7 @@ GAMEDIR = 'pokered'
 CLEAR = ' '
 SOLID = '0'
 SCALE_AMT = 2
+COLLISION_OVERLAY = True
 
 # I'm passing around arguments more than I think I should be
 pygame.init()
@@ -142,6 +143,23 @@ class MapViewer():
                 surface = m.tileset[tile.index]
                 scaled_size = 8*SCALE_AMT
                 scaled_surface = pygame.transform.scale(surface,(scaled_size, scaled_size))
+
+                if COLLISION_OVERLAY:
+                    tile_color = (255, 0, 0, 0) if tile.collides else (0, 255, 0, 0)
+                    # Color the surface
+                    pxa = pygame.PixelArray(scaled_surface) 
+                    for x in range(pxa.shape[0]):
+                        for y in range(pxa.shape[1]):
+                            old_color = scaled_surface.unmap_rgb(pxa[x,y])
+                            blendColor = lambda x, y : (x + y) / 2
+                            pxa[x,y] = (
+                                blendColor(old_color[0], tile_color[0]),
+                                blendColor(old_color[1], tile_color[1]),
+                                blendColor(old_color[2], tile_color[2]),
+                                blendColor(old_color[3], tile_color[3])
+                            )
+                    pxa.close()
+
                 self.screen.blit(scaled_surface, (scaled_size*t, scaled_size*row))
         pygame.display.flip()
         while pygame.event.wait().type != pygame.locals.QUIT:
@@ -153,8 +171,9 @@ class MapViewer():
 if __name__ == '__main__':
     viewer = MapViewer()
 
-    my_map = Map('viridiancity', 20, 'overworld')
+    my_map = Map('pallettown', 20, 'overworld')
     viewer.viewMap(my_map)
+
 
     # tileset = load_tileset(os.path.join(GAMEDIR, "gfx", "tilesets", 'reds_house'+'.png'))
     # NUM_COLS = 16
